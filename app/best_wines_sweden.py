@@ -14,8 +14,6 @@ TOPLIST_URLS = [
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
-log.basicConfig(level=log.INFO, format='%(asctime)s %(name)s %(levelname)s:%(message)s')
-
 
 def how_similar(string_a, string_b):
     return SequenceMatcher(None, string_a, string_b).ratio()
@@ -70,11 +68,11 @@ def transform_wine_style_to_emoji(wine_style):
 
 def create_message_to_send_for_wine_from_list(name):
     log.info(f"Checking {name}")
-    resulting_messages = None
+    resulting_message = None
     systembolaget_info = get_systembolaget_info_about_drink(urllib.parse.quote(name))
     if systembolaget_info:
         log.info(systembolaget_info)
-        resulting_messages = {}
+        resulting_message = ""
         for key, value in systembolaget_info.items():
             match_rating = round(how_similar(name, key) * 100, 1)
             if match_rating > 70:
@@ -92,16 +90,13 @@ def create_message_to_send_for_wine_from_list(name):
                     / 1000
                 )
                 sb_link = systembolaget_info[key]["systembolaget_link"]
-                if wine_style in resulting_messages:
-                    resulting_messages[wine_style] += f" {wine_style} {grape_variety}\n[{key}]({sb_link}) {bottle_volume}L {bottle_price}\n"
-                else:
-                    resulting_messages[wine_style] = f" {wine_style} {grape_variety}\n[{key}]({sb_link}) {bottle_volume}L {bottle_price}\n"
+                resulting_message += f" {wine_style} {grape_variety}\n[{key}]({sb_link}) {bottle_volume}L {bottle_price}\n"
             else:
                 log.warning(
                     f"Name match rating is too low between {name} and {key}: {match_rating}%"
                 )
-    log.info(resulting_messages)
-    return resulting_messages
+    log.info(resulting_message)
+    return resulting_message
 
 
 def create_tg_messages_from_vivino_sweden_toplist(toplist_url):
@@ -114,7 +109,7 @@ def create_tg_messages_from_vivino_sweden_toplist(toplist_url):
     )
     message_to_send = f"\n{toplist_title.capitalize()}\n"
 
-    wine_names_from_the_list = parse_vivino_toplist(toplist_url)[:5]
+    wine_names_from_the_list = parse_vivino_toplist(toplist_url)
 
     for wine_name, wine_rating in wine_names_from_the_list.items():
         found_wine_message = create_message_to_send_for_wine_from_list(wine_name)
