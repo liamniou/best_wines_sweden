@@ -14,7 +14,7 @@ TOPLIST_URLS = [
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID = int(os.getenv("TELEGRAM_CHAT_ID"))
 
-log.basicConfig(level=log.WARNING, format="%(asctime)s %(name)s %(levelname)s:%(message)s")
+log.basicConfig(level=log.INFO, format="%(asctime)s %(name)s %(levelname)s:%(message)s")
 
 
 def how_similar(string_a, string_b):
