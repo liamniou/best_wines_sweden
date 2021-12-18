@@ -29,6 +29,6 @@ def trigger_terraform(is_destroy, run_title):
 
 if __name__ == "__main__":
     trigger_terraform(
-        bool(os.getenv("IS_DESTROY")),
+        os.getenv("IS_DESTROY"),
         f"Trigger from script, destroy = {os.getenv('IS_DESTROY')}",
     )
