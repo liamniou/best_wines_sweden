@@ -1,6 +1,6 @@
 import json
-import httpx
 import os
+import urllib3
 
 
 def trigger_terraform(is_destroy, run_title):
@@ -16,15 +16,21 @@ def trigger_terraform(is_destroy, run_title):
         }
     }
 
-    with httpx.Client() as client:
-        headers = {
+    encoded_data = json.dumps(payload).encode("utf-8")
+
+    http = urllib3.PoolManager()
+
+    r = http.request(
+        "POST",
+        "https://app.terraform.io/api/v2/runs",
+        body=encoded_data,
+        headers={
             "Authorization": "Bearer " + os.getenv("TF_CLOUD_TOKEN"),
             "Content-Type": "application/vnd.api+json",
-        }
-        r = client.post(
-            "https://app.terraform.io/api/v2/runs", headers=headers, json=payload
-        )
-        print(r)
+        },
+    )
+
+    print(r.data)
 
 
 if __name__ == "__main__":
