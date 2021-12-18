@@ -11,12 +11,13 @@ TIMEOUT = int(os.getenv("CHROME_TIMEOUT", 3000))
 async def start_browser_accept_cookies():
     browser = await launch(
         headless=True,
-        args=["--no-sandbox",
-          "--single-process",
-          "--disable-dev-shm-usage",
-          "--disable-gpu",
-          "--no-zygote"
-        ]
+        args=[
+            "--no-sandbox",
+            "--single-process",
+            "--disable-dev-shm-usage",
+            "--disable-gpu",
+            "--no-zygote",
+        ],
     )
 
     starting_page = await browser.newPage()
@@ -76,12 +77,12 @@ async def perform_ladder_search(browser, query_text):
         resulting_dict["search_page_with_results"] = search_page_with_results
         return resulting_dict
     except:
-        log.warning(f"Failed to find anything for {query_text}")
+        log.info(f"Failed to find anything for {query_text}")
         split_query_text = query_text.split("%20")
         if len(split_query_text) > 1:
             sliced_query_text = split_query_text[:-1]
             new_query_text = "%20".join(sliced_query_text)
-            log.warning(f"Try again with {new_query_text}")
+            log.info(f"Try again with {new_query_text}")
             resulting_dict["new_search_query"] = new_query_text
         return resulting_dict
 
