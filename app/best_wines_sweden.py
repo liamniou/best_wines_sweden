@@ -4,7 +4,9 @@ import os
 import urllib.parse
 from asyncio_systembolaget_search import get_systembolaget_info_about_drink
 from bs4 import BeautifulSoup
+from dataclasses import dataclass
 from difflib import SequenceMatcher
+from telegraph_functions import create_telegraph_page, upload_image_to_telegraph
 
 
 TOPLIST_URLS = [
@@ -14,21 +16,13 @@ TOPLIST_URLS = [
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID = int(os.getenv("TELEGRAM_CHAT_ID"))
 
-log.basicConfig(level=log.INFO, format="%(asctime)s %(name)s %(levelname)s:%(message)s")
+log.basicConfig(
+    level=os.environ.get("LOGLEVEL", "INFO").upper(), format="%(asctime)s %(name)s %(levelname)s:%(message)s"
+)
 
 
 def how_similar(string_a, string_b):
     return SequenceMatcher(None, string_a, string_b).ratio()
-
-
-def normalize_string(string):
-    return (
-        str(string)
-        .replace(".", "\\.")
-        .replace("-", "\\-")
-        .replace("(", "\\(")
-        .replace(")", "\\)")
-    )
 
 
 def send_telegram_message(message_text):
@@ -37,7 +31,7 @@ def send_telegram_message(message_text):
             "chat_id": TELEGRAM_CHAT_ID,
             "text": message_text,
             "parse_mode": "MarkdownV2",
-            "disable_web_page_preview": True,
+            "disable_web_page_preview": False,
         }
         r = client.post(
             f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
@@ -50,9 +44,7 @@ def parse_vivino_toplist(toplist_url):
     resulting_dict = {}
 
     with httpx.Client() as client:
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0"
-        }
+        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0"}
         r = client.get(toplist_url, headers=headers)
 
         soup = BeautifulSoup(r.text, "html.parser")
@@ -67,7 +59,7 @@ def parse_vivino_toplist(toplist_url):
     return resulting_dict
 
 
-def transform_wine_style_to_emoji(wine_style):
+def wine_style_to_emoji(wine_style):
     if wine_style == "Rött":
         return "🍷"
     elif wine_style == "Vitt":
@@ -79,80 +71,77 @@ def transform_wine_style_to_emoji(wine_style):
 
 
 def get_systembolaget_wine_data(name):
+    @dataclass
+    class WineData:
+        sb_name: str
+        sb_link: str
+        style: str
+        grapes: str
+        volume: int
+        price: int
+        image: str
+
     log.info(f"Checking {name}")
-    resulting_message = None
-    systembolaget_info = get_systembolaget_info_about_drink(urllib.parse.quote(name))
-    if systembolaget_info:
-        log.info(systembolaget_info)
-        for sb_name, value in systembolaget_info.items():
-            match_rating = round(how_similar(name, sb_name) * 100, 1)
+    result = None
+    sb_info = get_systembolaget_info_about_drink(urllib.parse.quote(name))
+    if sb_info:
+        log.info(sb_info)
+        for sb_name, value in sb_info.items():
+            match_rating = round(
+                how_similar("".join(e for e in name if e.isalpha()), "".join(e for e in sb_name if e.isalpha())) * 100,
+                1,
+            )
             if match_rating > 70:
-                wine_style = transform_wine_style_to_emoji(
-                    systembolaget_info[sb_name]["drink_tags"][1]
-                )
-                grape_variety = systembolaget_info[sb_name]["drink_taste"][0]
-                bottle_price = systembolaget_info[sb_name]["bottle_price"][0].replace(
-                    ":-", "kr"
-                )
-                bottle_volume = (
-                    int(
-                        systembolaget_info[sb_name]["bottle_metadata"][1].replace(
-                            " ml", ""
-                        )
-                    )
-                    / 1000
-                )
-                sb_link = systembolaget_info[sb_name]["systembolaget_link"]
-                resulting_message = [
-                    wine_style,
-                    grape_variety,
+                result = WineData(
                     sb_name,
-                    sb_link,
-                    bottle_volume,
-                    bottle_price,
-                ]
-            else:
-                log.info(
-                    f"Name match rating is too low between {name} and {sb_name}: {match_rating}%"
+                    sb_info[sb_name]["systembolaget_link"],
+                    wine_style_to_emoji(sb_info[sb_name]["drink_metadata"]["product"]["categoryLevel2"]),
+                    sb_info[sb_name]["drink_metadata"]["product"]["grapes"],
+                    sb_info[sb_name]["drink_metadata"]["product"]["volume"],
+                    sb_info[sb_name]["drink_metadata"]["product"]["priceInclVat"],
+                    sb_info[sb_name]["drink_metadata"]["product"]["images"][0]["imageUrl"] + "_100.png",
                 )
-    log.info(resulting_message)
-    return resulting_message
+            else:
+                log.info(f"Name match rating is too low between {name} and {sb_name}: {match_rating}%")
+    log.info(result)
+    return result
 
 
-def create_tg_messages_per_grape_style_from_toplist(toplist_url):
-    messages_to_send = {}
+def create_pages_per_grape_style_from_toplist(toplist_url):
+    pages = {}
 
     wine_names_from_the_list = parse_vivino_toplist(toplist_url)
 
     for wine_name, wine_rating in wine_names_from_the_list.items():
         wine = get_systembolaget_wine_data(wine_name)
         if wine:
-            wine = [normalize_string(item) for item in wine]
-            formatted_wine_entry = normalize_string(
-                f"\n*{wine_rating['rating']} ⭐ {wine_name}*"
+            wine_html_content = f"<h4>{wine_rating['rating']} ⭐ {wine_name}</h4>"
+            wine_html_content += f"<img src='{upload_image_to_telegraph(wine.image)}'><br>"
+            wine_html_content += (
+                f"<p><a href='{wine.sb_link}'>{wine.sb_name}</a> ({wine.grapes}) "
+                f"<i><b>{wine.volume / 1000} L {wine.price} SEK</b></i></p>"
             )
-            formatted_wine_entry += (
-                f" {wine[0]} {wine[1]}\n[{wine[2]}]({wine[3]}) {wine[4]}L {wine[5]}\n"
-            )
-            if wine[0] in messages_to_send:
-                messages_to_send[wine[0]] += formatted_wine_entry
+            if wine.style in pages:
+                pages[wine.style]["html"] += wine_html_content
             else:
                 toplist_title = (
                     toplist_url.split("/")[-1]
                     .replace("sweden", "🇸🇪")
                     .replace("-", " ")
                     .replace(" right now", "")
-                    .replace("best", f"🔝 {wine[0]}")
+                    .replace("best", f"🔝 {wine.style}")
                 )
-                messages_to_send[wine[0]] = f"\n{toplist_title}\n{formatted_wine_entry}"
+                pages[wine.style] = {"title": toplist_title, "html": wine_html_content}
 
-    return messages_to_send
+    return pages
 
 
 if __name__ == "__main__":
     for toplist_url in TOPLIST_URLS:
         log.warning(f"Processing {toplist_url}")
-        messages = create_tg_messages_per_grape_style_from_toplist(toplist_url)
-        for grape_style, message in messages.items():
-            log.warning(message)
-            log.warning(send_telegram_message(message))
+        pages = create_pages_per_grape_style_from_toplist(toplist_url)
+        for grape_style, page in pages.items():
+            log.warning(page)
+            telegraph_page = create_telegraph_page(page["title"], page["html"])
+            log.warning(telegraph_page)
+            log.warning(send_telegram_message(telegraph_page["url"]))
