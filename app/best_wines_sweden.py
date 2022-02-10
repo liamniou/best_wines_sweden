@@ -2,11 +2,11 @@ import httpx
 import logging as log
 import os
 import urllib.parse
-from asyncio_systembolaget_search import get_systembolaget_info_about_drink
 from bs4 import BeautifulSoup
 from dataclasses import dataclass
 from difflib import SequenceMatcher
 from telegraph_functions import create_telegraph_page, upload_image_to_telegraph
+from with_browser import find_in_systembolaget
 
 
 TOPLIST_URLS = [
@@ -83,7 +83,7 @@ def get_systembolaget_wine_data(name):
 
     log.info(f"Checking {name}")
     result = None
-    sb_info = get_systembolaget_info_about_drink(urllib.parse.quote(name))
+    sb_info = find_in_systembolaget(urllib.parse.quote(name))
     if sb_info:
         log.info(sb_info)
         for sb_name, value in sb_info.items():
@@ -103,7 +103,7 @@ def get_systembolaget_wine_data(name):
                 )
             else:
                 log.info(f"Name match rating is too low between {name} and {sb_name}: {match_rating}%")
-    log.info(result)
+    log.info(f"Matched results: {result}")
     return result
 
 
