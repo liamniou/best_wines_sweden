@@ -6,7 +6,6 @@ on:
       - master
 
 env:
-  DOCKER_REGISTRY: hub.docker.com
   DOCKER_IMAGE: liamnou/best_wines_sweden_amd64
   DOCKER_TARGET_PLATFORM: linux/amd64
 
