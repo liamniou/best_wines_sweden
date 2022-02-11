@@ -25,11 +25,15 @@ def how_similar(string_a, string_b):
     return SequenceMatcher(None, string_a, string_b).ratio()
 
 
+def normalize_string(string):
+    return str(string).replace(".", "\\.").replace("-", "\\-").replace("(", "\\(").replace(")", "\\)")
+
+
 def send_telegram_message(message_text):
     with httpx.Client() as client:
         data_dict = {
             "chat_id": TELEGRAM_CHAT_ID,
-            "text": message_text,
+            "text": normalize_string(message_text),
             "parse_mode": "MarkdownV2",
             "disable_web_page_preview": False,
         }
