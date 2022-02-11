@@ -90,7 +90,7 @@ def get_systembolaget_wine_data(name):
     sb_info = find_in_systembolaget(urllib.parse.quote(name))
     if sb_info:
         log.info(sb_info)
-        for sb_name, value in sb_info.items():
+        for sb_name, sb_metadata in sb_info.items():
             match_rating = round(
                 how_similar("".join(e for e in name if e.isalpha()), "".join(e for e in sb_name if e.isalpha())) * 100,
                 1,
@@ -98,12 +98,12 @@ def get_systembolaget_wine_data(name):
             if match_rating > 70:
                 result = WineData(
                     sb_name,
-                    sb_info[sb_name]["systembolaget_link"],
-                    wine_style_to_emoji(sb_info[sb_name]["drink_metadata"]["product"]["categoryLevel2"]),
-                    sb_info[sb_name]["drink_metadata"]["product"]["grapes"],
-                    sb_info[sb_name]["drink_metadata"]["product"]["volume"],
-                    sb_info[sb_name]["drink_metadata"]["product"]["priceInclVat"],
-                    sb_info[sb_name]["drink_metadata"]["product"]["images"][0]["imageUrl"] + "_100.png",
+                    sb_metadata["systembolaget_link"],
+                    wine_style_to_emoji(sb_metadata["drink_metadata"]["product"]["categoryLevel2"]),
+                    sb_metadata["drink_metadata"]["product"]["grapes"],
+                    sb_metadata["drink_metadata"]["product"]["volume"],
+                    sb_metadata["drink_metadata"]["product"]["priceInclVat"],
+                    sb_metadata["drink_metadata"]["product"]["images"][0]["imageUrl"] + "_100.png",
                 )
             else:
                 log.info(f"Name match rating is too low between {name} and {sb_name}: {match_rating}%")
