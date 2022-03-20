@@ -64,7 +64,7 @@ def perform_ladder_search(browser, query_text):
             f"https://www.systembolaget.se/sok/?textQuery={query_text}"
             f"&categoryLevel1=Vin&assortmentText=Fast%20sortiment&volumeFrom=750&packaging=Flaska"
         )
-        results = open_page_find_element(browser, url, ".css-1n00zeq")
+        results = open_page_find_element(browser, url, ".css-1si8mf9") # .css-1si8mf9 - class of element in search
         log.info(f"Something found for {query_text}: {results}")
         resulting_dict["results"] = url
         return resulting_dict
@@ -94,7 +94,7 @@ def find_in_systembolaget(search_text):
         if search_page_url_with_results:
             print(search_page_url_with_results)
             browser.get(search_page_url_with_results)
-            href_items = browser.find_elements_by_css_selector(".css-1n00zeq")
+            href_items = browser.find_elements_by_css_selector(".css-o5i0kf") # Class of href attribute
             for item in href_items:
                 href = item.get_attribute("href")
                 with httpx.Client() as client:
