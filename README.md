@@ -8,7 +8,7 @@ This Telegram bot checks Vivino toplists defined in `TOPLIST_URLS` variable and 
 ## Usage
 # Build Docker image
 ![build_and_publish_docker_image](https://github.com/liamniou/best_wines_sweden/actions/workflows/docker-publish.yml/badge.svg)
-> docker build -f Dockerfile.arm -t best_wines_sweden .
+> docker build -f Dockerfile -t best_wines_sweden .
 # Start Docker container
 > docker run -dit \
   --name=best_wines \
