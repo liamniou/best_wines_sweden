@@ -10,7 +10,7 @@ from telegram_functions import create_telegraph_page, send_telegram_message
 
 TOPLIST_URLS = [
     "https://www.vivino.com/toplists/best-wines-under-100-kr-right-now-sweden",
-    "https://www.vivino.com/toplists/best-wines-between-100-kr-and-200-kr-right-now-sweden",
+    "https://www.vivino.com/toplists/best-wines-between-100-kr-and-200-kr-right-now-sweden"
 ]
 
 
@@ -102,10 +102,10 @@ def iteratively_search_sb(vivino_wine):
                 piles_with_items = parsed_html.css("a.css-1rtgr4w.enuzix00")
                 print(f"Found {len(piles_with_items)} piles")
                 for item in piles_with_items:
-                    wine_name = item.css_first("p.css-w9tb7l.e3wog7r1").text().strip()
+                    wine_name = item.css_first("p.css-106ciad.e3wog7r0").text().strip()
                     try:
                         wine_additional_name = (
-                            item.css_first("p.css-9c24zl.e3wog7r1").text().strip()
+                            item.css_first("p.css-1buyea6.e3wog7r0").text().strip()
                         )
                     except:
                         wine_additional_name = ""
@@ -118,7 +118,7 @@ def iteratively_search_sb(vivino_wine):
                             item.css_first("p.css-1kvpmze.enp2lf70").text().strip()
                         )
                         wine_style = (
-                            item.css_first("p.css-4ijttz.enp2lf70").text().strip()
+                            item.css_first("p.css-2py6cn.enp2lf70").text().strip()
                         )
                         search_results.append(
                             SbSearchResult(
