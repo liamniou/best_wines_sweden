@@ -10,7 +10,9 @@ from telegram_functions import create_telegraph_page, send_telegram_message
 
 TOPLIST_URLS = [
     "https://www.vivino.com/toplists/best-wines-under-100-kr-right-now-sweden",
-    "https://www.vivino.com/toplists/best-wines-between-100-kr-and-200-kr-right-now-sweden"
+    "https://www.vivino.com/toplists/best-wines-between-100-kr-and-200-kr-right-now-sweden",
+    "https://www.vivino.com/toplists/top-25-australian-shiraz-wines-sweden-right-now-sweden",
+    "https://www.vivino.com/toplists/top-25-south-african-syrah-wines-sweden-right-now-sweden",
 ]
 
 
