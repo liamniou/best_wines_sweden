@@ -74,7 +74,7 @@ def iteratively_search_sb(vivino_wine):
         search_results = []
         with sync_playwright() as p:
             # Launch browser
-            browser = p.firefox.launch(headless=True, slow_mo=3000)
+            browser = p.firefox.launch(headless=False, slow_mo=1000)
             page = browser.new_page()
             page.goto("https://www.systembolaget.se")
             # Accept age restriction
@@ -101,26 +101,26 @@ def iteratively_search_sb(vivino_wine):
                 html = page.inner_html("div.css-1ad0061.e17wolzc0")
                 parsed_html = HTMLParser(html)
 
-                piles_with_items = parsed_html.css("a.css-1rtgr4w.enuzix00")
+                piles_with_items = parsed_html.css("a.css-1lc3wed.enuzix00")
                 print(f"Found {len(piles_with_items)} piles")
                 for item in piles_with_items:
-                    wine_name = item.css_first("p.css-106ciad.e3wog7r0").text().strip()
+                    wine_name = item.css_first("p.css-54mqg2.e3wog7r0").text().strip()
                     try:
                         wine_additional_name = (
-                            item.css_first("p.css-1buyea6.e3wog7r0").text().strip()
+                            item.css_first("p.css-18wuxp4.e3wog7r0").text().strip()
                         )
                     except:
                         wine_additional_name = ""
                     wine_final_name = f"{wine_name} {wine_additional_name}".strip()
                     if calculate_match_rating(search_string, wine_final_name) > 70:
-                        wine_href = item.css_first("a.css-1rtgr4w.enuzix00").attributes[
+                        wine_href = item.css_first("a.css-1lc3wed.enuzix00").attributes[
                             "href"
                         ]
                         wine_price = (
-                            item.css_first("p.css-1kvpmze.enp2lf70").text().strip()
+                            item.css_first("p.css-tny168.enp2lf70").text().strip()
                         )
                         wine_style = (
-                            item.css_first("p.css-2py6cn.enp2lf70").text().strip()
+                            item.css_first("p.css-utx0um.enp2lf70").text().strip()
                         )
                         search_results.append(
                             SbSearchResult(
@@ -139,8 +139,8 @@ def iteratively_search_sb(vivino_wine):
                 else:
                     split_name.pop()
         return search_results
-    except:
-        print("Something happened...")
+    except Exception as e:
+        print(f"Something happened...\n{e}")
         return None
 
 
