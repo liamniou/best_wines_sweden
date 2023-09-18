@@ -116,12 +116,20 @@ def iteratively_search_sb(vivino_wine):
                         wine_href = item.css_first("a.css-1lc3wed.enuzix00").attributes[
                             "href"
                         ]
-                        wine_price = (
-                            item.css_first("p.css-tny168.enp2lf70").text().strip()
-                        )
-                        wine_style = (
-                            item.css_first("p.css-utx0um.enp2lf70").text().strip()
-                        )
+                        try:
+                            wine_price = (
+                                item.css_first("p.css-tny168.enp2lf70").text().strip()
+                            )
+                        except:
+                            print("Could not find wine price")
+                            wine_price = "???"
+                        try:
+                            wine_style = (
+                                item.css_first("p.css-utx0um.enp2lf70").text().strip()
+                            )
+                        except:
+                            print("Could not find wine style")
+                            wine_style = ""
                         search_results.append(
                             SbSearchResult(
                                 name=wine_final_name,
