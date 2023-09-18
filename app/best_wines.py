@@ -74,7 +74,7 @@ def iteratively_search_sb(vivino_wine):
         search_results = []
         with sync_playwright() as p:
             # Launch browser
-            browser = p.firefox.launch(headless=False, slow_mo=1000)
+            browser = p.firefox.launch(headless=True, slow_mo=1000)
             page = browser.new_page()
             page.goto("https://www.systembolaget.se")
             # Accept age restriction
